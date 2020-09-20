@@ -1,5 +1,5 @@
 <h2 align="center">
-    PHP Wrapper for [SuperText Nigeria](https://www.supertextng.com) SMS Gateway
+    PHP Wrapper for SuperText Nigeria SMS Gateway
 </h2>
 
 <p align="center">
