@@ -1,18 +1,18 @@
 {
-    "name"       : "kheme/laravel-supertext-nigeria",
-    "description": "A Laravel package for SuperText Nigeria's SMS API",
+    "name"       : "kheme/php-supertext-nigeria",
+    "description": "A simple PHP wrapper for SuperText Nigeria's SMS gateway API",
     "version"    : "1.0.0",
     "keywords"   : [
         "kheme",
-        "laravel",
+        "php",
         "sms",
-        "laravel sms",
+        "php sms package",
         "supertextng",
         "sms gateway",
-        "laravel sms gateway",
-        "laravel sms sender"
+        "php sms gateway",
+        "php sms sender"
     ],
-    "homepage": "https://github.com/kheme/laravel-supertext-nigeria",
+    "homepage": "https://github.com/kheme/php-supertext-nigeria",
     "type"    : "package",
     "license" : "MIT",
     "authors" : [
@@ -39,16 +39,6 @@
             "url"    : "packages/kheme/laravel-supertext-nigeria",
             "options": {
                 "symlink": true
-            }
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Kheme\\SuperTextNg\\SuperTextNgServiceProvider"
-            ],
-            "aliases": {
-                "SMS": "Kheme\\SuperTextNg\\Facades\\SMS"
             }
         }
     }

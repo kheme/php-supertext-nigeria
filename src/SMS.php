@@ -1,6 +1,6 @@
 <?php
 
-namespace Kheme\SuperTextNg\Services;
+namespace Kheme\SuperTextNg;
 
 class SMS
 {
@@ -25,12 +25,10 @@ class SMS
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(string $username, string $password)
     {
-        $this->username   = config('supertextng.access.username');
-        $this->password   = config('supertextng.access.password');
-        $this->sender     = config('supertextng.settings.sender');
-        $this->ignore_dnd = config('supertextng.settings.ignore_dnd');
+        $this->username   = $username;
+        $this->password   = $password;
 
         $this->errors = [
             '100' => 'One or more required url parameter is missing or misspelt.',
