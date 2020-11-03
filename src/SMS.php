@@ -59,8 +59,10 @@ class SMS
         if (is_array($recipient)) {
             $this->recipients = array_merge($this->recipients, $recipient);
         } else {
-            $this->recipients[] = (trim($recipient));
+            $this->recipients[] = trim($recipient);
         }
+
+        $this->recipients = array_unique(array_filter($this->recipients));
 
         return $this;
     }
@@ -109,9 +111,7 @@ class SMS
      */
     public function ignoreDND(bool $ignore = true) : object
     {
-        if ($ignore) {
-            $this->ignore_dnd = 'yes';
-        }
+        $this->ignore_dnd = [ true => 'yes', false => null ][$ignore];
 
         return $this;
     }
@@ -163,46 +163,33 @@ class SMS
             'username' => $this->username,
             'password' => $this->password,
             'sender'   => $this->sender,
-            'message'  => $this->message
+            'message'  => $this->message,
+            'no_dnd'   => $this->ignore_dnd,
         ];
 
-        if ($this->ignore_dnd) {
-            $query['no_dnd'] = 'yes';
-        }
-
-        $this->recipients = array_unique(array_filter($this->recipients));
-
-        $url_list   = [];
-        $send_count = 0;
-        $units_used = 0.0;
+        $url_list        = [];
+        $send_count      = 0;
+        $units_used      = 0.0;
+        $recipient_count = count($this->recipients);
 
         foreach ($this->recipients as $number) {
             $query['destination'] = $number;
 
-            $url_list[] = $this->api_url . http_build_query($query);                
+            $url_list[] = $this->api_url . http_build_query(array_filter($query));                
         }
 
-        try {
-            $responses = $this->multiCurl($url_list);
+        foreach ($this->multiCurl($url_list) as $response) {
+            $split_response = explode(':', $response);
 
-            // if message was sent successfully
-            foreach ($responses as $response) {
-                $split_response = explode(':', $response);
-
-                if ($split_response[0] == 'SENT') {
-                    $send_count += 1;
-                    $units_used += $split_response[1] ?? 0;
-                }
+            if ($split_response[0] == 'SENT') {
+                $send_count += 1;
+                $units_used += $split_response[1] ?? 0;
             }
-        } catch (\Exception $exception) {
-            // there was an error
         }
-
-        $message = $send_count . ' of ' . count($this->recipients) . ' SMS sent';
 
         $return = [
-            'success' => true,
-            'message' => $message,
+            'success' => $send_count == $recipient_count,
+            'message' => "{$send_count} of {$recipient_count} SMS sent",
         ];
 
         if ($this->return_units_used) {
@@ -213,7 +200,7 @@ class SMS
             $return['data']['balance'] = $this->balance(false) ?? 'Cannot get balance!';
         }
 
-        exit($this->jsonResponse($return));
+        return $this->jsonResponse($return);
     }
 
     /**
@@ -230,24 +217,22 @@ class SMS
      */
     public function balance($can_exit = true)
     {
-        $url = $this->balance_url . http_build_query(
-            [
+        $response = trim(file_get_contents(
+            $this->balance_url . http_build_query([
                 'username' => $this->username,
                 'password' => $this->password
-            ]
-        );
-
-        $response = trim(file_get_contents($url));
+            ])
+        ));
 
         $this->handleResponseError($response);
 
         $return = [
             'success' => true,
-            'data' => [ 'balance' => (float) round(explode(':', $response)[1], 1) ],
+            'data'    => [ 'balance' => (float) round(explode(':', $response)[1], 1) ],
         ];
 
         if ($can_exit) {
-            exit($this->jsonResponse($return));
+            return $this->jsonResponse($return);
         }
 
         return $return['data']['balance'];
@@ -348,10 +333,10 @@ class SMS
     protected function handleResponseError($response)
     {
         if (strlen($response) == 3) {
-            exit($this->jsonResponse([
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => $this->errors[$response]
-            ], 400));
+            ], 400);
         }
     }
 }
