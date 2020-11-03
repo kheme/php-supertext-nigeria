@@ -111,9 +111,7 @@ class SMS
      */
     public function ignoreDND(bool $ignore = true) : object
     {
-        if ($ignore) {
-            $this->ignore_dnd = 'yes';
-        }
+        $this->ignore_dnd = [ true => 'yes', false => null ][$ignore];
 
         return $this;
     }
@@ -165,12 +163,9 @@ class SMS
             'username' => $this->username,
             'password' => $this->password,
             'sender'   => $this->sender,
-            'message'  => $this->message
+            'message'  => $this->message,
+            'no_dnd'   => $this->ignore_dnd,
         ];
-
-        if ($this->ignore_dnd) {
-            $query['no_dnd'] = 'yes';
-        }
 
         $url_list   = [];
         $send_count = 0;
