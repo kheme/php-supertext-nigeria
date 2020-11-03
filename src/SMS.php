@@ -167,37 +167,29 @@ class SMS
             'no_dnd'   => $this->ignore_dnd,
         ];
 
-        $url_list   = [];
-        $send_count = 0;
-        $units_used = 0.0;
+        $url_list        = [];
+        $send_count      = 0;
+        $units_used      = 0.0;
+        $recipient_count = count($this->recipients);
 
         foreach ($this->recipients as $number) {
             $query['destination'] = $number;
 
-            $url_list[] = $this->api_url . http_build_query($query);                
+            $url_list[] = $this->api_url . http_build_query(array_filter($query));                
         }
 
-        try {
-            $responses = $this->multiCurl($url_list);
+        foreach ($this->multiCurl($url_list) as $response) {
+            $split_response = explode(':', $response);
 
-            // if message was sent successfully
-            foreach ($responses as $response) {
-                $split_response = explode(':', $response);
-
-                if ($split_response[0] == 'SENT') {
-                    $send_count += 1;
-                    $units_used += $split_response[1] ?? 0;
-                }
+            if ($split_response[0] == 'SENT') {
+                $send_count += 1;
+                $units_used += $split_response[1] ?? 0;
             }
-        } catch (\Exception $exception) {
-            // there was an error
         }
-
-        $message = $send_count . ' of ' . count($this->recipients) . ' SMS sent';
 
         $return = [
-            'success' => true,
-            'message' => $message,
+            'success' => $send_count == $recipient_count,
+            'message' => "{$send_count} of {$recipient_count} SMS sent",
         ];
 
         if ($this->return_units_used) {
@@ -208,7 +200,7 @@ class SMS
             $return['data']['balance'] = $this->balance(false) ?? 'Cannot get balance!';
         }
 
-        exit($this->jsonResponse($return));
+        return $this->jsonResponse($return);
     }
 
     /**
