@@ -59,8 +59,10 @@ class SMS
         if (is_array($recipient)) {
             $this->recipients = array_merge($this->recipients, $recipient);
         } else {
-            $this->recipients[] = (trim($recipient));
+            $this->recipients[] = trim($recipient);
         }
+
+        $this->recipients = array_unique(array_filter($this->recipients));
 
         return $this;
     }
@@ -169,8 +171,6 @@ class SMS
         if ($this->ignore_dnd) {
             $query['no_dnd'] = 'yes';
         }
-
-        $this->recipients = array_unique(array_filter($this->recipients));
 
         $url_list   = [];
         $send_count = 0;
