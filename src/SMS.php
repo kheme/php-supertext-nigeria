@@ -343,10 +343,10 @@ class SMS
     protected function handleResponseError($response)
     {
         if (strlen($response) == 3) {
-            exit($this->jsonResponse([
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => $this->errors[$response]
-            ], 400));
+            ], 400);
         }
     }
 }
