@@ -225,24 +225,22 @@ class SMS
      */
     public function balance($can_exit = true)
     {
-        $url = $this->balance_url . http_build_query(
-            [
+        $response = trim(file_get_contents(
+            $this->balance_url . http_build_query([
                 'username' => $this->username,
                 'password' => $this->password
-            ]
-        );
-
-        $response = trim(file_get_contents($url));
+            ])
+        ));
 
         $this->handleResponseError($response);
 
         $return = [
             'success' => true,
-            'data' => [ 'balance' => (float) round(explode(':', $response)[1], 1) ],
+            'data'    => [ 'balance' => (float) round(explode(':', $response)[1], 1) ],
         ];
 
         if ($can_exit) {
-            exit($this->jsonResponse($return));
+            return $this->jsonResponse($return);
         }
 
         return $return['data']['balance'];
